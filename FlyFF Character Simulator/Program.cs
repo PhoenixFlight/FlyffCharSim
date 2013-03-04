@@ -13,13 +13,15 @@ namespace FlyFF_Character_Simulator
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        [STAThread]
+        private static Dictionary<string, string> propItemText;
+        private static Dictionary<string, string> propMoverText;
+        private static Character player;
         static void Main()
         {
+            Init();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
-            Init();
         }
         private class ResFile
         {
@@ -29,8 +31,39 @@ namespace FlyFF_Character_Simulator
         }
         private static void Init()
         {
+            player = new Character();
             ResFile[] files = ReadRes("C:/Program Files/Gpotato/Flyff/dataSub2.res");
-            
+            propItemText = new Dictionary<string, string>();
+            int i;
+            for(i = 0; i < files.Length && !files[i].fileName.Equals("propItem.txt.txt"); i++);
+            string output = Encoding.ASCII.GetString(files[i].content).Replace(Convert.ToChar(0x0).ToString(), "").Replace("??", "");
+            string[] content = output.Split(new char[] { '\n' });
+            for (int index = 0; index < content.Length; index ++)
+            {
+                string key = content[index].Substring(0, "IDS_PROPITEM_TXT_016364".Length).Trim();
+                propItemText.Add(key, content[index].Substring(key.Length).Trim());
+            }
+
+            for (i = 0; i < files.Length && !files[i].fileName.Equals("Spec_Item.txt"); i++);
+            output = Encoding.ASCII.GetString(files[i].content).Replace(Convert.ToChar(0x0).ToString(), "");
+            content = output.Split(new char[] { '\n' });
+            Equipment.allGear = new Dictionary<string, Equipment>();
+            for (int index = 0; index < content.Length; index++)
+            {
+                string[] line = content[index].Split(new char[] { '\t' });
+                if (line.Length < 20)
+                    continue;
+                if(!(line[5].Equals("IK1_WEAPON") || line[5].Equals("IK1_ARMOR") || line[6].Equals("IK2_JEWELRY")))
+                    continue;
+                Equipment eq = new Equipment();
+                eq.id = line[1];
+                eq.sid = line[2];
+                eq.type = (Equipment.Type)(Enum.Parse(typeof(Equipment.Type), line[7]));
+                eq.job = (FClass.Job)(Enum.Parse(typeof(FClass.Job), line[8]));
+                eq.ultimate = line.Contains("WEAPON_ULTIMATE");
+
+                Equipment.allGear.Add(eq.id, eq);
+            }
         }
         private static ResFile[] ReadRes(string path)
         {

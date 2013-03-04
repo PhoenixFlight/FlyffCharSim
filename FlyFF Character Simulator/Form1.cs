@@ -16,5 +16,17 @@ namespace FlyFF_Character_Simulator
         {
             InitializeComponent();
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            string[] sexes = Enum.GetNames(typeof(Character.Sex));
+            foreach(string sex in sexes)
+                SexBox.Items.Add(sex);
+        }
+
+        private void SexBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
